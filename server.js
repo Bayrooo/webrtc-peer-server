@@ -1,21 +1,27 @@
+// server.js
+const express = require("express");
+const { ExpressPeerServer } = require("peer");
 
-import express from "express";
-import cors from "cors";
-import { ExpressPeerServer } from "peer";
-
-const PORT = process.env.PORT || 9000;
 const app = express();
-app.use(cors());
+const PORT = process.env.PORT || 3000;
 
+app.set("trust proxy", true);
+
+// Health
+app.get("/", (_, res) => res.send("PeerJS signaling server is running."));
+
+// HTTP server
 const server = app.listen(PORT, () => {
   console.log(`Peer server on :${PORT}`);
 });
 
+// ✅ options.path = "/"  (жинхэнэ endpoint-ийг mount зам тодорхойлно)
 const peerServer = ExpressPeerServer(server, {
-  path: "/",
-  debug: true,
+  path: "/",               // ← энд ТАСАЛБАРААР "/" байх ёстой
+  proxied: true,
   allow_discovery: true,
+  cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
+// ✅ Эцсийн endpoint: "/peerjs"
 app.use("/peerjs", peerServer);
-app.get("/", (_,res)=>res.send("PeerJS signaling server is running."));
